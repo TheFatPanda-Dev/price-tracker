@@ -1,0 +1,266 @@
+{% extends 'base.html' %} {% block title %}Price Tracker{% endblock %} {% block
+content %}
+<div class="grid gap-6 lg:grid-cols-3 items-start">
+	<section
+		class="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"
+	>
+		<h2 class="text-lg font-semibold mb-4">Add item</h2>
+		<form action="{{ url_for('add_item') }}" method="post" class="space-y-4">
+			<div>
+				<label class="block text-sm font-medium mb-1">Product URL</label>
+				<input
+					name="url"
+					type="url"
+					required
+					class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400"
+					placeholder="https://example.com/product"
+				/>
+			</div>
+
+			<div>
+				<label class="block text-sm font-medium mb-1">Item name (optional)</label>
+				<input
+					name="name"
+					type="text"
+					class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400"
+					placeholder="Leave empty to auto-detect"
+				/>
+			</div>
+
+			<div>
+				<label class="block text-sm font-medium mb-1">Selector type</label>
+				<select
+					name="selector_type"
+					class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400"
+				>
+					<option value="css">CSS</option>
+					<option value="xpath">XPath</option>
+				</select>
+			</div>
+
+			<div>
+				<label class="block text-sm font-medium mb-1"
+					>Price selector (optional)</label
+				>
+				<input
+					name="selector"
+					type="text"
+					class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400"
+					placeholder=".price, #price, //span[@class='price']"
+				/>
+			</div>
+
+			<button
+				type="submit"
+				class="w-full rounded-lg bg-slate-900 text-white font-medium py-2.5 hover:bg-slate-700 transition"
+			>
+				Add and check now
+			</button>
+		</form>
+
+		<form
+			action="{{ url_for('run_check_all') }}"
+			method="post"
+			class="mt-3"
+			onsubmit="
+				const button = this.querySelector('button[type=submit]');
+				if (button) {
+					button.disabled = true;
+					button.classList.add('opacity-60', 'cursor-not-allowed');
+					button.textContent = 'Checking all...';
+				}
+			"
+		>
+			<button
+				type="submit"
+				class="w-full rounded-lg border border-slate-300 bg-white text-slate-800 font-medium py-2.5 hover:bg-slate-50 transition"
+			>
+				Check all
+			</button>
+		</form>
+	</section>
+
+	<section class="lg:col-span-2 space-y-4">
+		{% if items %} {% for item in items %}
+		<article class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+			<div class="flex flex-wrap items-start justify-between gap-3">
+				<div>
+					<h3 class="text-lg font-semibold">
+						<a
+							href="{{ url_for('item_detail', item_id=item['id']) }}"
+							class="hover:underline"
+							>{{ item['name'] }}</a
+						>
+					</h3>
+					<a
+						href="{{ item['url'] }}"
+						target="_blank"
+						class="text-sm text-slate-500 break-all hover:text-slate-700"
+						>{{ item['url'] }}</a
+					>
+				</div>
+
+				<div class="text-right">
+					<p class="text-xs uppercase tracking-wide text-slate-500">Current</p>
+					<p class="text-2xl font-bold">
+						{% if item['current_price'] is not none %} {{
+						('%.2f'|format(item['current_price'])) ~ ' ' ~ (item['currency'] or
+						'$') }} {% else %} -- {% endif %}
+					</p>
+				</div>
+			</div>
+
+			<div class="mt-4 flex flex-wrap gap-4 text-sm text-slate-600">
+				<p>
+					Lowest:
+					<span class="font-semibold text-slate-900"
+						>{% if item['lowest_price'] is not none %}{{
+						('%.2f'|format(item['lowest_price'])) ~ ' ' ~ (item['currency'] or
+						'$') }}{% else %}--{% endif %}</span
+					>
+				</p>
+				<p>
+					Last checked:
+					<span class="font-semibold text-slate-900"
+						>{{ item['last_checked_at'] or 'never' }}</span
+					>
+				</p>
+				<p>
+					Selector:
+					<span class="font-semibold text-slate-900"
+						>{{ item['selector_type'] }} • {{ item['selector'] }}</span
+					>
+				</p>
+			</div>
+
+			<div class="mt-4 flex items-center justify-between gap-3">
+				<a
+					href="{{ url_for('item_detail', item_id=item['id']) }}"
+					class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+					>View details</a
+				>
+				<form
+					action="{{ url_for('remove_item', item_id=item['id']) }}"
+					method="post"
+					class="ml-auto js-remove-item-form"
+					data-item-name="{{ item['name']|e }}"
+				>
+					<input type="hidden" name="next" value="{{ url_for('index') }}" />
+					<button
+						type="submit"
+						class="rounded-lg border border-rose-600 bg-rose-600 px-3 py-2 text-sm font-medium text-white hover:bg-rose-700 transition"
+					>
+						Remove
+					</button>
+				</form>
+			</div>
+		</article>
+		{% endfor %} {% else %}
+		<div
+			class="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500"
+		>
+			No items yet. Add your first product on the left.
+		</div>
+		{% endif %}
+	</section>
+</div>
+
+<div id="remove-modal" class="hidden fixed inset-0 z-50">
+	<div class="absolute inset-0 bg-slate-900/50"></div>
+	<div class="relative min-h-screen flex items-center justify-center px-4">
+		<div
+			class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+		>
+			<h3 class="text-lg font-semibold text-slate-900">Remove item</h3>
+			<p class="mt-2 text-sm text-slate-600">
+				Are you sure you want to remove
+				<span id="remove-modal-item-name" class="font-semibold text-slate-900"
+					>this item</span
+				>?
+			</p>
+			<div class="mt-5 flex justify-end gap-3">
+				<button
+					id="remove-modal-cancel"
+					type="button"
+					class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+				>
+					Cancel
+				</button>
+				<button
+					id="remove-modal-confirm"
+					type="button"
+					class="rounded-lg border border-rose-600 bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700 transition"
+				>
+					Remove
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	(function () {
+		const modal = document.getElementById("remove-modal");
+		const itemNameElement = document.getElementById("remove-modal-item-name");
+		const cancelButton = document.getElementById("remove-modal-cancel");
+		const confirmButton = document.getElementById("remove-modal-confirm");
+		const forms = document.querySelectorAll(".js-remove-item-form");
+		let pendingForm = null;
+
+		function closeModal() {
+			modal.classList.add("hidden");
+			pendingForm = null;
+		}
+
+		function openModal(form) {
+			pendingForm = form;
+			const itemName = form.dataset.itemName || "this item";
+			itemNameElement.textContent = itemName;
+			modal.classList.remove("hidden");
+		}
+
+		forms.forEach((form) => {
+			form.addEventListener("submit", (event) => {
+				if (form.dataset.confirmed === "1") {
+					return;
+				}
+				event.preventDefault();
+				openModal(form);
+			});
+		});
+
+		cancelButton.addEventListener("click", closeModal);
+		modal.addEventListener("click", (event) => {
+			if (
+				event.target === modal ||
+				event.target.classList.contains("bg-slate-900/50")
+			) {
+				closeModal();
+			}
+		});
+
+		confirmButton.addEventListener("click", () => {
+			if (!pendingForm) {
+				closeModal();
+				return;
+			}
+
+			const button = pendingForm.querySelector('button[type="submit"]');
+			if (button) {
+				button.disabled = true;
+				button.classList.add("opacity-60", "cursor-not-allowed");
+				button.textContent = "Removing...";
+			}
+
+			pendingForm.dataset.confirmed = "1";
+			pendingForm.submit();
+		});
+
+		document.addEventListener("keydown", (event) => {
+			if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+				closeModal();
+			}
+		});
+	})();
+</script>
+{% endblock %}

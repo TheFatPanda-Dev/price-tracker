@@ -1,0 +1,141 @@
+{% extends 'base.html' %} {% block title %}{{ item['name'] }} - Price Tracker{%
+endblock %} {% block content %}
+<div class="space-y-6">
+	<div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+		<div class="flex flex-wrap justify-between items-start gap-4">
+			<div>
+				<h1 class="text-2xl font-semibold">{{ item['name'] }}</h1>
+				<a
+					href="{{ item['url'] }}"
+					target="_blank"
+					class="text-sm text-slate-500 break-all hover:text-slate-700"
+					>{{ item['url'] }}</a
+				>
+			</div>
+
+			<form
+				action="{{ url_for('run_check', item_id=item['id']) }}"
+				method="post"
+				onsubmit="
+					const button = this.querySelector('button[type=submit]');
+					if (button) {
+						button.disabled = true;
+						button.classList.add('opacity-60', 'cursor-not-allowed');
+						button.textContent = 'Checking...';
+					}
+				"
+			>
+				<button
+					type="submit"
+					class="rounded-lg bg-slate-900 text-white px-4 py-2.5 hover:bg-slate-700 transition"
+				>
+					Run check now
+				</button>
+			</form>
+		</div>
+
+		<div class="mt-4 text-sm text-slate-600">
+			<p>
+				Selector:
+				<span class="font-medium text-slate-900"
+					>{{ item['selector_type'] }} • {{ item['selector'] or 'not set' }}</span
+				>
+			</p>
+			<p>
+				Currency:
+				<span class="font-medium text-slate-900"
+					>{{ item['currency'] or '$' }}</span
+				>
+			</p>
+		</div>
+
+		{% if not item['selector'] and stats['successful_checks'] == 0 %}
+		<div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+			Price not detected automatically yet. Add a selector below, then run check again.
+		</div>
+		{% endif %}
+
+		<form action="{{ url_for('update_selector', item_id=item['id']) }}" method="post" class="mt-4 grid gap-3 md:grid-cols-[max-content,minmax(0,1fr),max-content]">
+			<div>
+				<label class="block text-sm font-medium mb-1">Selector type</label>
+				<select name="selector_type" class="w-fit rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400">
+					<option value="css" {% if item['selector_type'] == 'css' %}selected{% endif %}>CSS</option>
+					<option value="xpath" {% if item['selector_type'] == 'xpath' %}selected{% endif %}>XPath</option>
+				</select>
+			</div>
+			<div>
+				<label class="block text-sm font-medium mb-1">Price selector</label>
+				<input name="selector" type="text" required value="{{ item['selector'] or '' }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder=".price, #price, //span[@class='price']" />
+			</div>
+			<div class="flex items-end gap-2">
+				<button type="submit" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">Save</button>
+				<button type="submit" name="run_check" value="1" class="h-10 w-full rounded-lg bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-700 transition">Save + check</button>
+			</div>
+		</form>
+	</div>
+
+	<div class="grid gap-4 md:grid-cols-4">
+		<div class="bg-white border border-slate-200 rounded-xl p-4">
+			<p class="text-xs uppercase text-slate-500 tracking-wide">Lowest</p>
+			<p class="mt-2 text-2xl font-bold">
+				{% if stats['lowest_price'] is not none %}{{
+				('%.2f'|format(stats['lowest_price'])) ~ ' ' ~ (item['currency'] or '$')
+				}}{% else %}--{% endif %}
+			</p>
+		</div>
+		<div class="bg-white border border-slate-200 rounded-xl p-4">
+			<p class="text-xs uppercase text-slate-500 tracking-wide">Highest</p>
+			<p class="mt-2 text-2xl font-bold">
+				{% if stats['highest_price'] is not none %}{{
+				('%.2f'|format(stats['highest_price'])) ~ ' ' ~ (item['currency'] or
+				'$') }}{% else %}--{% endif %}
+			</p>
+		</div>
+		<div class="bg-white border border-slate-200 rounded-xl p-4">
+			<p class="text-xs uppercase text-slate-500 tracking-wide">Total checks</p>
+			<p class="mt-2 text-2xl font-bold">{{ stats['total_checks'] }}</p>
+		</div>
+		<div class="bg-white border border-slate-200 rounded-xl p-4">
+			<p class="text-xs uppercase text-slate-500 tracking-wide">Successful</p>
+			<p class="mt-2 text-2xl font-bold">{{ stats['successful_checks'] }}</p>
+		</div>
+	</div>
+
+	<div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+		<h2 class="text-lg font-semibold mb-4">History</h2>
+		<div class="overflow-auto">
+			<table class="min-w-full text-sm">
+				<thead>
+					<tr class="text-left text-slate-500 border-b border-slate-200">
+						<th class="py-2 pr-4">Checked at</th>
+						<th class="py-2 pr-4">Status</th>
+						<th class="py-2 pr-4">Price</th>
+						<th class="py-2 pr-4">Matched text</th>
+						<th class="py-2">Error</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for row in history %}
+					<tr class="border-b border-slate-100">
+						<td class="py-2 pr-4 whitespace-nowrap">{{ row['checked_at'] }}</td>
+						<td class="py-2 pr-4">
+							{{ 'OK' if row['success'] else 'Failed' }}
+						</td>
+						<td class="py-2 pr-4">
+							{% if row['price'] is not none %}{{ ('%.2f'|format(row['price']))
+							~ ' ' ~ (item['currency'] or '$') }}{% else %}--{% endif %}
+						</td>
+						<td class="py-2 pr-4">{{ row['raw_text'] or '--' }}</td>
+						<td class="py-2">{{ row['error'] or '--' }}</td>
+					</tr>
+					{% else %}
+					<tr>
+						<td colspan="5" class="py-4 text-slate-500">No checks yet.</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% endblock %}

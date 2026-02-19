@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Price Tracker{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="{{ url_for('index') }}" class="text-xl font-semibold tracking-tight">Price Tracker</a>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-6 space-y-2">
+          {% for category, message in messages %}
+            <div data-flash class="rounded-lg px-4 py-3 text-sm transition-opacity duration-300 {% if category == 'error' %}bg-rose-100 text-rose-700 border border-rose-200{% else %}bg-emerald-100 text-emerald-700 border border-emerald-200{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="mt-auto bg-white border-t border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 py-3 text-xs text-slate-500 text-center">
+      Flask + Scrapy + {{ db_backend|capitalize }}
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const flashes = document.querySelectorAll('[data-flash]');
+      if (!flashes.length) {
+        return;
+      }
+
+      setTimeout(() => {
+        flashes.forEach((flash) => {
+          flash.classList.add('opacity-0');
+          setTimeout(() => flash.remove(), 350);
+        });
+      }, 3500);
+    })();
+  </script>
+</body>
+</html>
