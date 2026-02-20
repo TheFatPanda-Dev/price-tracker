@@ -13,5 +13,5 @@ jobs:
           username: ${{ secrets.NEOSERV_USER }}
           key: ${{ secrets.NEOSERV_SSH_KEY }}
           script: |
-            cd /home/afrim/subdomains/price-tracker
+            cd subdomains/price-tracker
             git pull
