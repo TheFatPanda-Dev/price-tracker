@@ -33,6 +33,8 @@ def _mysql_connection():
         "password": os.getenv("DB_PASSWORD", ""),
         "database": os.getenv("DB_NAME", "price_tracker"),
         "autocommit": True,
+        "charset": "utf8mb4",
+        "collation": "utf8mb4_unicode_ci",
     }
 
     try:
@@ -190,7 +192,7 @@ def _init_mysql() -> None:
                 email VARCHAR(255) NOT NULL UNIQUE,
                 password_hash VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
             """
         )
         cursor.execute(
@@ -205,7 +207,7 @@ def _init_mysql() -> None:
                 currency VARCHAR(8) NOT NULL DEFAULT '$',
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            ) ENGINE=InnoDB
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
             """
         )
         cursor.execute(
@@ -219,7 +221,7 @@ def _init_mysql() -> None:
                 error TEXT,
                 checked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
-            ) ENGINE=InnoDB
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
             """
         )
         cursor.execute(
