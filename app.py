@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from dotenv import load_dotenv
 
@@ -9,7 +10,7 @@ from price_tracker.scheduler import start_scheduler
 load_dotenv()
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "dev-secret-change-me"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
 
 @app.before_request
