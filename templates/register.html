@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Register - Price Tracker{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+  <h1 class="text-xl font-semibold mb-4">Create account</h1>
+  <form method="post" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">Email</label>
+      <input name="email" type="email" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Password</label>
+      <input name="password" type="password" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Confirm password</label>
+      <input name="confirm_password" type="password" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400" />
+    </div>
+    <button type="submit" class="w-full rounded-lg bg-slate-900 text-white py-2.5 font-medium hover:bg-slate-700 transition">Create account</button>
+  </form>
+  <p class="mt-4 text-sm text-slate-600">Already have an account? <a href="{{ url_for('login') }}" class="text-slate-900 font-medium hover:underline">Login</a></p>
+</div>
+{% endblock %}

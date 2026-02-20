@@ -10,6 +10,17 @@
   <header class="bg-white border-b border-slate-200">
     <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
       <a href="{{ url_for('index') }}" class="text-xl font-semibold tracking-tight">Price Tracker</a>
+      <div class="flex items-center gap-3 text-sm">
+        {% if current_user %}
+          <span class="text-slate-500">{{ current_user['email'] }}</span>
+          <form action="{{ url_for('logout') }}" method="post">
+            <button type="submit" class="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50 transition">Logout</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50 transition">Login</a>
+          <a href="{{ url_for('register') }}" class="rounded-lg bg-slate-900 px-3 py-1.5 text-white hover:bg-slate-700 transition">Register</a>
+        {% endif %}
+      </div>
     </div>
   </header>
 

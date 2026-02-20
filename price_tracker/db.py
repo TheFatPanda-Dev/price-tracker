@@ -109,14 +109,23 @@ def _init_sqlite() -> None:
     with _connection() as connection:
         connection.executescript(
             """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE TABLE IF NOT EXISTS items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
                 name TEXT NOT NULL,
                 url TEXT NOT NULL,
                 selector TEXT NOT NULL,
                 selector_type TEXT NOT NULL DEFAULT 'css',
                 currency TEXT NOT NULL DEFAULT '$',
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS price_checks (
@@ -139,22 +148,26 @@ def _init_sqlite() -> None:
         column_names = {column["name"] for column in columns}
         if "currency" not in column_names:
             connection.execute("ALTER TABLE items ADD COLUMN currency TEXT NOT NULL DEFAULT '$'")
+        if "user_id" not in column_names:
+            connection.execute("ALTER TABLE items ADD COLUMN user_id INTEGER")
 
         if "tag" in column_names:
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS items_new (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
                     name TEXT NOT NULL,
                     url TEXT NOT NULL,
                     selector TEXT NOT NULL,
                     selector_type TEXT NOT NULL DEFAULT 'css',
                     currency TEXT NOT NULL DEFAULT '$',
-                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
 
-                INSERT INTO items_new (id, name, url, selector, selector_type, currency, created_at)
-                SELECT id, name, url, selector, selector_type, currency, created_at
+                INSERT INTO items_new (id, user_id, name, url, selector, selector_type, currency, created_at)
+                SELECT id, user_id, name, url, selector, selector_type, currency, created_at
                 FROM items;
 
                 DROP TABLE items;
@@ -162,20 +175,36 @@ def _init_sqlite() -> None:
                 """
             )
 
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_items_user_id ON items(user_id)"
+        )
+
 
 def _init_mysql() -> None:
     with _connection() as connection:
         cursor = connection.cursor()
         cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(255) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB
+            """
+        )
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS items (
                 id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NULL,
                 name VARCHAR(255) NOT NULL,
                 url TEXT NOT NULL,
                 selector TEXT NOT NULL,
                 selector_type VARCHAR(16) NOT NULL DEFAULT 'css',
                 currency VARCHAR(8) NOT NULL DEFAULT '$',
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB
             """
         )
@@ -194,8 +223,17 @@ def _init_mysql() -> None:
             """
         )
         cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_price_checks_item_checked_at ON price_checks(item_id, checked_at DESC)"
+            """
+            SELECT COUNT(1)
+            FROM INFORMATION_SCHEMA.STATISTICS
+            WHERE TABLE_SCHEMA = %s
+              AND TABLE_NAME = 'price_checks'
+              AND INDEX_NAME = 'idx_price_checks_item_checked_at'
+            """,
+            (os.getenv("DB_NAME", "price_tracker"),),
         )
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("CREATE INDEX idx_price_checks_item_checked_at ON price_checks(item_id, checked_at DESC)")
 
         cursor.execute(
             """
@@ -208,9 +246,25 @@ def _init_mysql() -> None:
         columns = {row[0] for row in cursor.fetchall()}
         if "tag" in columns:
             cursor.execute("ALTER TABLE items DROP COLUMN tag")
+        if "user_id" not in columns:
+            cursor.execute("ALTER TABLE items ADD COLUMN user_id INT NULL")
+
+        cursor.execute(
+            """
+            SELECT COUNT(1)
+            FROM INFORMATION_SCHEMA.STATISTICS
+            WHERE TABLE_SCHEMA = %s
+              AND TABLE_NAME = 'items'
+              AND INDEX_NAME = 'idx_items_user_id'
+            """,
+            (os.getenv("DB_NAME", "price_tracker"),),
+        )
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("CREATE INDEX idx_items_user_id ON items(user_id)")
 
 
 def create_item(
+    user_id: int,
     name: str,
     url: str,
     selector: str,
@@ -219,30 +273,44 @@ def create_item(
 ) -> int:
     cursor = _execute(
         """
-        INSERT INTO items (name, url, selector, selector_type, currency)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO items (user_id, name, url, selector, selector_type, currency)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (name, url, selector, selector_type, currency),
+        (user_id, name, url, selector, selector_type, currency),
     )
     return int(cursor.lastrowid)
 
 
-def get_item(item_id: int) -> sqlite3.Row | None:
+def get_item(item_id: int, user_id: int | None = None) -> dict | None:
+    if user_id is None:
+        return _execute(
+            "SELECT * FROM items WHERE id = ?",
+            (item_id,),
+            fetch="one",
+        )
+
     return _execute(
-        "SELECT * FROM items WHERE id = ?",
-        (item_id,),
+        "SELECT * FROM items WHERE id = ? AND user_id = ?",
+        (item_id, user_id),
         fetch="one",
     )
 
 
-def list_items() -> list[sqlite3.Row]:
+def list_items(user_id: int | None = None) -> list[dict]:
+    if user_id is None:
+        return _execute(
+            "SELECT * FROM items ORDER BY created_at DESC",
+            fetch="all",
+        )
+
     return _execute(
-        "SELECT * FROM items ORDER BY created_at DESC",
+        "SELECT * FROM items WHERE user_id = ? ORDER BY created_at DESC",
+        (user_id,),
         fetch="all",
     )
 
 
-def list_items_with_stats() -> list[sqlite3.Row]:
+def list_items_with_stats(user_id: int) -> list[dict]:
     return _execute(
         """
         SELECT
@@ -269,8 +337,10 @@ def list_items_with_stats() -> list[sqlite3.Row]:
             WHERE success = 1
             GROUP BY item_id
         ) min_price ON min_price.item_id = i.id
+        WHERE i.user_id = ?
         ORDER BY i.created_at DESC
         """,
+        (user_id,),
         fetch="all",
     )
 
@@ -291,21 +361,22 @@ def insert_price_check(
     )
 
 
-def get_item_history(item_id: int, limit: int = 100) -> list[sqlite3.Row]:
+def get_item_history(item_id: int, user_id: int, limit: int = 100) -> list[dict]:
     return _execute(
         """
-        SELECT *
-        FROM price_checks
-        WHERE item_id = ?
+        SELECT pc.*
+        FROM price_checks pc
+        JOIN items i ON i.id = pc.item_id
+        WHERE pc.item_id = ? AND i.user_id = ?
         ORDER BY checked_at DESC
         LIMIT ?
         """,
-        (item_id, limit),
+        (item_id, user_id, limit),
         fetch="all",
     )
 
 
-def get_item_stats(item_id: int) -> dict[str, Any]:
+def get_item_stats(item_id: int, user_id: int) -> dict[str, Any]:
     row = _execute(
         """
         SELECT
@@ -313,12 +384,21 @@ def get_item_stats(item_id: int) -> dict[str, Any]:
             SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) AS successful_checks,
             MIN(CASE WHEN success = 1 THEN price END) AS lowest_price,
             MAX(CASE WHEN success = 1 THEN price END) AS highest_price
-        FROM price_checks
-        WHERE item_id = ?
+        FROM price_checks pc
+        JOIN items i ON i.id = pc.item_id
+        WHERE pc.item_id = ? AND i.user_id = ?
         """,
-        (item_id,),
+        (item_id, user_id),
         fetch="one",
     )
+
+    if row is None:
+        return {
+            "total_checks": 0,
+            "successful_checks": 0,
+            "lowest_price": None,
+            "highest_price": None,
+        }
 
     return {
         "total_checks": row["total_checks"] or 0,
@@ -328,24 +408,59 @@ def get_item_stats(item_id: int) -> dict[str, Any]:
     }
 
 
-def delete_item(item_id: int) -> int:
+def delete_item(item_id: int, user_id: int) -> int:
     cursor = _execute(
-        "DELETE FROM items WHERE id = ?",
-        (item_id,),
+        "DELETE FROM items WHERE id = ? AND user_id = ?",
+        (item_id, user_id),
     )
     return cursor.rowcount
 
 
-def update_item_currency(item_id: int, currency: str) -> None:
+def update_item_currency(item_id: int, currency: str, user_id: int | None = None) -> None:
+    if user_id is None:
+        _execute(
+            "UPDATE items SET currency = ? WHERE id = ?",
+            (currency[:8], item_id),
+        )
+        return
+
     _execute(
-        "UPDATE items SET currency = ? WHERE id = ?",
-        (currency[:8], item_id),
+        "UPDATE items SET currency = ? WHERE id = ? AND user_id = ?",
+        (currency[:8], item_id, user_id),
     )
 
 
-def update_item_selector(item_id: int, selector: str, selector_type: str) -> int:
+def update_item_selector(item_id: int, selector: str, selector_type: str, user_id: int) -> int:
     cursor = _execute(
-        "UPDATE items SET selector = ?, selector_type = ? WHERE id = ?",
-        (selector, selector_type, item_id),
+        "UPDATE items SET selector = ?, selector_type = ? WHERE id = ? AND user_id = ?",
+        (selector, selector_type, item_id, user_id),
     )
     return cursor.rowcount
+
+
+def create_user(email: str, password_hash: str) -> int | None:
+    existing = get_user_by_email(email)
+    if existing:
+        return None
+
+    cursor = _execute(
+        "INSERT INTO users (email, password_hash) VALUES (?, ?)",
+        (email.lower(), password_hash),
+    )
+    return int(cursor.lastrowid)
+
+
+def get_user(user_id: int) -> dict | None:
+    return _execute(
+        "SELECT * FROM users WHERE id = ?",
+        (user_id,),
+        fetch="one",
+    )
+
+
+def get_user_by_email(email: str) -> dict | None:
+    return _execute(
+        "SELECT * FROM users WHERE email = ?",
+        (email.lower(),),
+        fetch="one",
+    )
