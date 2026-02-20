@@ -12,6 +12,7 @@ jobs:
           host: ${{ secrets.NEOSERV_HOST }}
           username: ${{ secrets.NEOSERV_USER }}
           key: ${{ secrets.NEOSERV_SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd subdomains/price-tracker
             git pull
