@@ -3,3 +3,4 @@ __pycache__/
 .venv/
 price_tracker.sqlite3
 .env
+node_modules/
