@@ -10,6 +10,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.NEOSERV_HOST }}
+          port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.NEOSERV_USER }}
           key: ${{ secrets.NEOSERV_SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
