@@ -115,6 +115,52 @@ Use a cron job every 4 hours:
 
 Adjust the virtualenv Python path if your panel uses a different location.
 
+## Email notifications on price changes
+
+When a scheduled check (APScheduler or cron via `run_price_checks_once.py`) finds a changed price,
+the app sends an email summary to the item's owner email.
+
+Each email includes:
+
+- Product name as a clickable link to the product URL
+- Previous price
+- New price
+- New price in **red** when the price increased
+- New price in **green** when the price decreased
+
+Configure SMTP in `.env`:
+
+```bash
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_FROM=no-reply@example.com
+SMTP_USER=your_smtp_username
+SMTP_PASSWORD=your_smtp_password
+SMTP_USE_TLS=1
+SMTP_USE_SSL=0
+```
+
+To use NeoServ mailer, set:
+
+```bash
+MAILER_PROVIDER=neoserv
+NEOSERV_SMTP_HOST=your-neoserv-smtp-host
+NEOSERV_SMTP_PORT=465
+NEOSERV_SMTP_FROM=no-reply@your-domain.com
+NEOSERV_SMTP_USER=your-neoserv-user
+NEOSERV_SMTP_PASSWORD=your-neoserv-password
+NEOSERV_SMTP_USE_TLS=0
+NEOSERV_SMTP_USE_SSL=1
+```
+
+If a NeoServ variable is missing, the app falls back to the matching `SMTP_*` value.
+
+Notes:
+
+- `SMTP_HOST` and `SMTP_FROM` are required to send emails.
+- Use TLS (`SMTP_USE_TLS=1`) for port `587`.
+- Use SSL (`SMTP_USE_SSL=1`) for port `465` and usually set `SMTP_USE_TLS=0`.
+
 ## Passenger / WSGI deployment note
 
 If you deploy with Passenger, `passenger_wsgi.py` must expose a Python variable named `application`.

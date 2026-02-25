@@ -363,6 +363,23 @@ def insert_price_check(
     )
 
 
+def get_latest_successful_price(item_id: int) -> float | None:
+    row = _execute(
+        """
+        SELECT price
+        FROM price_checks
+        WHERE item_id = ? AND success = 1 AND price IS NOT NULL
+        ORDER BY checked_at DESC, id DESC
+        LIMIT 1
+        """,
+        (item_id,),
+        fetch="one",
+    )
+    if not row:
+        return None
+    return row["price"]
+
+
 def get_item_history(item_id: int, user_id: int, limit: int = 100) -> list[dict]:
     return _execute(
         """
