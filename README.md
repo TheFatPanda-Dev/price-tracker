@@ -110,7 +110,7 @@ If your hosting restarts worker processes often, keep `ENABLE_SCHEDULER=0` and r
 Use a cron job every 4 hours:
 
 ```bash
-0 */4 * * * cd /home/afrim/subdomains/price-tracker && /home/afrim/virtualenv/subdomains/price-tracker/3.11/bin/python run_price_checks_once.py >> /home/afrim/subdomains/price-tracker/cron.log 2>&1
+0 */4 * * * cd **ADD PATH HERE** && **ADD PATH HERE**/3.11/bin/python run_price_checks_once.py >> **ADD PATH HERE**/cron.log 2>&1
 ```
 
 Adjust the virtualenv Python path if your panel uses a different location.
@@ -152,6 +152,8 @@ NEOSERV_SMTP_PASSWORD=your-neoserv-password
 NEOSERV_SMTP_USE_TLS=0
 NEOSERV_SMTP_USE_SSL=1
 ```
+
+NeoServ host note: depending on account setup, `NEOSERV_SMTP_HOST` may be your app/domain host (for example `price-tracker.thefatpanda.uk`) instead of `mail.your-domain`.
 
 If a NeoServ variable is missing, the app falls back to the matching `SMTP_*` value.
 
