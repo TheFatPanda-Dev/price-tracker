@@ -103,6 +103,17 @@ If your hosting setup already runs multiple workers (for example Passenger/WSGI)
 export ENABLE_SCHEDULER=0
 ```
 
+## Passenger / WSGI deployment note
+
+If you deploy with Passenger, `passenger_wsgi.py` must expose a Python variable named `application`.
+Use Python import syntax (not Gunicorn style):
+
+```python
+from wsgi import app as application
+```
+
+Do **not** use `application = wsgi.app:app` (this causes a `SyntaxError` and HTTP 500).
+
 ### Using a .env file
 
 Copy [./.env.example](.env.example) to `.env` and edit values. The app loads it automatically on startup.
