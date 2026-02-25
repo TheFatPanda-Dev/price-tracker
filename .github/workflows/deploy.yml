@@ -15,11 +15,10 @@ jobs:
           password: ${{ secrets.NEOSERV_PASSWORD }}
           script: |
             set -e
-            APP_DIR="${{ secrets.NEOSERV_APP_DIR }}"
+            APP_DIR="$PWD/subdomains/price-tracker"
 
-            if [ -z "$APP_DIR" ]; then
-              echo "ERROR: NEOSERV_APP_DIR secret is not set"
-              exit 1
+            if [ ! -d "$APP_DIR" ]; then
+              APP_DIR="$HOME/subdomains/price-tracker"
             fi
 
             cd "$APP_DIR"
