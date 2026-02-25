@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="static/price_tracker_img.png" alt="Price Tracker" />
+</p>
+
 # Price Tracker (Flask + Scrapy)
 
 A web app to track product prices with user accounts, per-user watchlists, and automatic background checks.
