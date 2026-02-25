@@ -1,0 +1,2 @@
+# Required by CloudLinux Python Selector.
+# Kept intentionally minimal so app startup tooling can update this file.
