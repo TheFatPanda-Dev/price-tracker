@@ -13,6 +13,21 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.NEOSERV_USER }}
           password: ${{ secrets.NEOSERV_PASSWORD }}
+          script_stop: true
           script: |
-            cd subdomains/price-tracker
-            git pull
+            set -e
+            APP_DIR=/home/afrim/subdomains/price-tracker
+
+            cd "$APP_DIR"
+
+            if [ ! -d .git ]; then
+              echo "ERROR: $APP_DIR is not a git repository"
+              exit 1
+            fi
+
+            git remote set-url origin https://github.com/TheFatPanda-Dev/price-tracker.git
+            git fetch origin main
+            git reset --hard origin/main
+
+            touch .htaccess
+            chmod 644 .htaccess
