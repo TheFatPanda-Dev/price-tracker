@@ -161,6 +161,18 @@ Notes:
 - Use TLS (`SMTP_USE_TLS=1`) for port `587`.
 - Use SSL (`SMTP_USE_SSL=1`) for port `465` and usually set `SMTP_USE_TLS=0`.
 
+Quick email test command:
+
+```bash
+python3 test_email.py your-email@example.com
+```
+
+To test the red "higher" styling:
+
+```bash
+python3 test_email.py your-email@example.com --direction higher
+```
+
 ## Passenger / WSGI deployment note
 
 If you deploy with Passenger, `passenger_wsgi.py` must expose a Python variable named `application`.
