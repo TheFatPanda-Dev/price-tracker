@@ -103,6 +103,18 @@ If your hosting setup already runs multiple workers (for example Passenger/WSGI)
 export ENABLE_SCHEDULER=0
 ```
 
+## Cron-based checks (recommended on shared hosting)
+
+If your hosting restarts worker processes often, keep `ENABLE_SCHEDULER=0` and run checks via cron.
+
+Use a cron job every 4 hours:
+
+```bash
+0 */4 * * * cd /home/afrim/subdomains/price-tracker && /home/afrim/virtualenv/subdomains/price-tracker/3.11/bin/python run_price_checks_once.py >> /home/afrim/subdomains/price-tracker/cron.log 2>&1
+```
+
+Adjust the virtualenv Python path if your panel uses a different location.
+
 ## Passenger / WSGI deployment note
 
 If you deploy with Passenger, `passenger_wsgi.py` must expose a Python variable named `application`.
