@@ -13,7 +13,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.NEOSERV_USER }}
           password: ${{ secrets.NEOSERV_PASSWORD }}
-          script_stop: true
           script: |
             set -e
             APP_DIR=/home/afrim/subdomains/price-tracker
