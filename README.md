@@ -94,6 +94,15 @@ export DB_PASSWORD=your_password
 Then start the app normally. Tables are created automatically on launch.
 If the database does not exist yet, it will be created automatically.
 
+## Scheduler toggle
+
+By default, the background scheduler starts on app boot.
+If your hosting setup already runs multiple workers (for example Passenger/WSGI) or you see startup issues, disable it:
+
+```bash
+export ENABLE_SCHEDULER=0
+```
+
 ### Using a .env file
 
 Copy [./.env.example](.env.example) to `.env` and edit values. The app loads it automatically on startup.
