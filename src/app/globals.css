@@ -1,26 +1,102 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-board: #15181e;
+  --color-board-2: #1f232b;
+  --color-board-line: #3a3f4a;
+  --color-board-muted: #b9bcc4;
+  --color-flap: #f2f1ec;
+  --color-paper: #f6f5f0;
+  --color-card: #fffefa;
+  --color-rule: #dcdad2;
+  --color-track: #e4e2da;
+  --color-ink: #15181e;
+  --color-muted: #5d6068;
+  --color-yellow: #ffd23f;
+  --color-drop: #1f7a45;
+  --color-rise: #c2372b;
+  --color-target: #3b5bdb;
+
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
+  html {
+    background: var(--color-board);
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-variant-numeric: tabular-nums;
+  }
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    accent-color: var(--color-ink);
+    caret-color: var(--color-ink);
+    scrollbar-color: #9a9890 var(--color-paper);
+  }
+  ::selection {
+    background: var(--color-yellow);
+    color: var(--color-board);
+  }
+  .bg-board {
+    caret-color: var(--color-yellow);
+    scrollbar-color: var(--color-board-line) var(--color-board);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-yellow);
+    outline-offset: 2px;
+  }
+  .on-paper :focus-visible {
+    outline-color: var(--color-target);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Split-flap price cells: flip once when a price changed since the last visit. */
+.flap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 0.86em;
+  height: 1.36em;
+  border-radius: 3px;
+  background: linear-gradient(#262b34 50%, var(--color-board) 50%);
+  color: var(--color-flap);
+  perspective: 300px;
+}
+.flap::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: rgb(242 241 236 / 0.28);
+  box-shadow: 0 1px 0 #000;
+}
+.flap > span {
+  display: block;
+  transform-origin: 50% 50%;
+  animation: flap-in 520ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 150ms);
+}
+@keyframes flap-in {
+  0% { transform: rotateX(90deg); opacity: 0.2; }
+  60% { transform: rotateX(-12deg); opacity: 1; }
+  100% { transform: rotateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flap > span { animation: none; }
+}
+
+.stamp {
+  display: inline-block;
+  transform: rotate(-3deg);
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }

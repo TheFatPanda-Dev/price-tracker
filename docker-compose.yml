@@ -1,0 +1,18 @@
+# Synology Container Manager → Project → "Create" → point at this folder.
+# Or anywhere with Docker:  docker compose up -d
+services:
+  price-tracker:
+    image: price-tracker:local
+    build: .
+    container_name: price-tracker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_PATH: /data/price-tracker.db
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    # Chromium needs a bit of shared memory; keep RAM modest for a NAS.
+    shm_size: "256mb"
+    mem_limit: 1g

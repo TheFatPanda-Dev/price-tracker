@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",
@@ -14,6 +16,7 @@
     "cheerio": "^1.2.0",
     "croner": "^11.0.1",
     "drizzle-orm": "^0.45.4",
+    "lucide-react": "^1.73.0",
     "next": "16.4.6",
     "nodemailer": "^10.6.0",
     "playwright-core": "^1.65.1",

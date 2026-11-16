@@ -1,0 +1,12 @@
+node_modules
+.next
+data
+.git
+.env
+.env.*
+!.env.example
+.impeccable/review
+.claude
+docs
+scripts
+*.log

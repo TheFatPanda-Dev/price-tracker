@@ -58,8 +58,10 @@ Next 16 gotchas (read `node_modules/next/dist/docs/` before coding): `middleware
 
 **Impeccable finish (required by the skill)** — after building: screenshots `desktop.png` (1440) + `mobile.png` (390) into `.impeccable/review/`, run `.claude/skills/impeccable/scripts/impeccable detect --json <changed files>`, spawn `impeccable-finish-reviewer` with the contract + screenshots, apply fixes, then `impeccable-documenter` writes DESIGN.md + `.impeccable/design.json`.
 
-## Status (2026-11-16)
+## Status (2026-11-16, second session)
 
-Done: Next.js scaffold, deps installed (`drizzle-orm better-sqlite3 cheerio playwright-core @node-rs/argon2 nodemailer zod croner server-only`; dev `drizzle-kit tsx vitest @types/*`), next.config (standalone, external packages), `.env.example`, PRODUCT.md, direction contract.
+Built and verified end to end (local prod server + Docker container): DB schema + auto-migrations (`drizzle/`), auth (setup/login/invite/sessions/proxy), price parser + extractor + URL guard (vitest, `npm test`), static fetch + Chromium fallback, "unavailable" state (Amazon "Currently unavailable" → out-of-stock, not a failure), tracker + timetable scheduler, in-app/email/Telegram alerts, all screens (watchlist, product detail with step chart, activity, settings incl. Telegram linking + invites), Dockerfile (full playwright-core copied in; the standalone trace is incomplete) + docker-compose + GHCR multi-arch workflow, README with Synology steps.
 
-Next, in order: DB schema + migrations → auth (setup/login/invite/proxy) → price parser + tests → scraper + browser fallback → tracker + scheduler → notifications → UI screens in the Departures Board world → Dockerfile/compose + README → test against real shop links → Impeccable finish review + DESIGN.md.
+Dev helpers in `scripts/` (not shipped): `scrape-try.ts <urls>` runs the scraper, `dump.ts static|browser <url> <out>` saves HTML, `e2e-shots.ts` / `e2e-check.ts` drive the UI with a throwaway DB (sample login admin@example.com).
+
+Known: eBay returns its error page to this connection (static and headless) — shown as a failed check. Not yet done: SMTP/Telegram tested against real accounts; arm64 image build verified (CI does it); DESIGN.md / `.impeccable/design.json` (impeccable-documenter). Finish review ran (disposition: fix); fixes 2–8 applied and re-captured. Open item 1: FORM seed `baf72a73619c97f8` fails `concept-seed --check-seed` on the home PC (rolled on the work PC) — check it there.
