@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { Product } from "@/db/schema";
@@ -179,6 +180,24 @@ function EmptyBoard() {
 
 type Section = { label: string; rows: Row[] };
 
+/** Opens the product on the shop's own site. */
+function ShopLink({ p, inline = false }: { p: Row; inline?: boolean }) {
+  return (
+    <a
+      href={p.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`relative z-10 items-center gap-1 text-[13px] text-muted hover:text-ink hover:underline hover:underline-offset-2 ${
+        inline ? "-my-2 inline-flex flex-none py-2" : "mt-0.5 inline-flex"
+      }`}
+    >
+      {p.shop}
+      <ExternalLink aria-hidden className="size-3" />
+      <span className="sr-only">(opens the shop in a new tab)</span>
+    </a>
+  );
+}
+
 function TargetBadge({ p }: { p: Row }) {
   if (!p.targetHitAt || p.targetPriceCents == null) return null;
   return (
@@ -244,16 +263,21 @@ function BoardTable({ sections }: { sections: Section[] }) {
                 {p.lastChangedAt ? boardTime(p.lastChangedAt) : <span className="text-[13px] font-medium">added</span>}
               </td>
               <td className={td}>
-                <Link href={`/products/${p.id}`} className="flex items-center gap-3">
-                  <Thumb src={p.imageUrl} />
+                <div className="flex items-center gap-3">
+                  <Link href={`/products/${p.id}`} tabIndex={-1} aria-hidden className="flex-none">
+                    <Thumb src={p.imageUrl} />
+                  </Link>
                   <span className="min-w-0">
-                    <span className="line-clamp-2 text-[16px] font-semibold [overflow-wrap:anywhere] group-hover:underline group-hover:underline-offset-2">
+                    <Link
+                      href={`/products/${p.id}`}
+                      className="line-clamp-2 text-[16px] font-semibold [overflow-wrap:anywhere] hover:underline hover:underline-offset-2"
+                    >
                       {p.title ?? displayUrl(p.url)}
                       <TargetBadge p={p} />
-                    </span>
-                    <span className="block text-[13px] text-muted">{p.shop}</span>
+                    </Link>
+                    <ShopLink p={p} />
                   </span>
-                </Link>
+                </div>
               </td>
               <td className={`${td} text-right whitespace-nowrap`}>
                 <PriceCell p={p} />
@@ -284,27 +308,34 @@ function BoardList({ sections }: { sections: Section[] }) {
           )}
           <ul>
             {s.rows.map((p) => (
-              <li key={p.id} className="border-b border-rule">
-                <Link href={`/products/${p.id}`} className="flex gap-3 px-1 py-3">
+              <li key={p.id} className="relative border-b border-rule">
+                <div className="flex gap-3 px-1 py-3">
                   <Thumb src={p.imageUrl} size={44} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
-                      <span className="line-clamp-2 min-w-0 font-semibold [overflow-wrap:anywhere]">
+                      {/* The ::after covers the whole row, so the row stays one big tap target. */}
+                      <Link
+                        href={`/products/${p.id}`}
+                        className="line-clamp-2 min-w-0 font-semibold [overflow-wrap:anywhere] after:absolute after:inset-0"
+                      >
                         {p.title ?? displayUrl(p.url)}
                         <TargetBadge p={p} />
-                      </span>
+                      </Link>
                       <span className="text-right whitespace-nowrap">
                         <PriceCell p={p} />
                       </span>
                     </div>
                     <div className="mt-1 flex items-center justify-between gap-3 text-[13px] text-muted">
-                      <span className="truncate">
-                        {p.shop} · {p.lastChangedAt ? `changed ${boardTime(p.lastChangedAt)}` : `checked ${checkedLabel(p.lastCheckedAt)}`}
+                      <span className="flex min-w-0 items-center gap-1">
+                        <ShopLink p={p} inline />
+                        <span className="truncate">
+                          · {p.lastChangedAt ? `changed ${boardTime(p.lastChangedAt)}` : `checked ${checkedLabel(p.lastCheckedAt)}`}
+                        </span>
                       </span>
                       <ChangeCell p={p} />
                     </div>
                   </div>
-                </Link>
+                </div>
               </li>
             ))}
           </ul>
