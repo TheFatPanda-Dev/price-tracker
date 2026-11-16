@@ -10,6 +10,7 @@ import { RangeBar } from "@/components/app/range-bar";
 import { Thumb } from "@/components/app/thumb";
 import { Change } from "@/components/change";
 import { FlapPrice } from "@/components/flap-price";
+import { NetPrice } from "@/components/net-price";
 import { requireUser } from "@/lib/auth/session";
 import { boardTime, checkedLabel, groupOf, isToday, nextLabel, serverNow, type Group } from "@/lib/format";
 import { getSettings } from "@/lib/notify";
@@ -28,7 +29,7 @@ const FILTERS = [
 
 const GROUPS: Group[] = ["Today", "This week", "Earlier"];
 
-type Row = Product & { flip: boolean; changedAt: Date };
+type Row = Product & { flip: boolean; changedAt: Date; vat: number | null };
 
 export default async function WatchlistPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
@@ -48,6 +49,7 @@ export default async function WatchlistPage({ searchParams }: PageProps<"/">) {
       ...p,
       changedAt: p.lastChangedAt ?? p.createdAt,
       flip: !!p.lastChangedAt && p.lastChangedAt.getTime() > seen,
+      vat: settings.showNetPrices ? (p.vatPercent ?? settings.vatPercent) : null,
     }));
 
   const now = serverNow();
@@ -200,6 +202,7 @@ function PriceCell({ p }: { p: Row }) {
           {formatMoney(p.previousPriceCents, p.currency)}
         </span>
       )}
+      {p.vat != null && <NetPrice cents={p.currentPriceCents} currency={p.currency} vat={p.vat} />}
     </>
   );
 }

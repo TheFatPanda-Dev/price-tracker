@@ -57,6 +57,8 @@ export const userSettings = sqliteTable("user_settings", {
   telegramLinkToken: text("telegram_link_token"),
   notifyOn: text("notify_on", { enum: ["any", "drops"] }).notNull().default("any"),
   minChangePercent: real("min_change_percent").notNull().default(0),
+  showNetPrices: integer("show_net_prices", { mode: "boolean" }).notNull().default(false),
+  vatPercent: real("vat_percent").notNull().default(22),
   lastSeenAt: ts("last_seen_at"),
 });
 
@@ -82,6 +84,7 @@ export const products = sqliteTable(
     targetHitAt: ts("target_hit_at"),
     inStock: integer("in_stock", { mode: "boolean" }),
     selector: text("selector"),
+    vatPercent: real("vat_percent"), // overrides the user's VAT rate for this product
     method: text("method", { enum: ["static", "browser", "selector"] }),
     status: text("status", { enum: ["pending", "ok", "error"] }).notNull().default("pending"),
     lastError: text("last_error"),

@@ -10,6 +10,7 @@ import { StepChart } from "@/components/app/step-chart";
 import { Thumb } from "@/components/app/thumb";
 import { Change } from "@/components/change";
 import { FlapPrice } from "@/components/flap-price";
+import { NetPrice } from "@/components/net-price";
 import { Submit } from "@/components/form-bits";
 import { requireUser } from "@/lib/auth/session";
 import { checkedLabel, fullDate, nextLabel, serverNow } from "@/lib/format";
@@ -49,7 +50,9 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
     .where(eq(schema.priceHistory.productId, p.id))
     .orderBy(asc(schema.priceHistory.recordedAt))
     .all();
-  const seen = getSettings(user.id).lastSeenAt?.getTime() ?? 0;
+  const settings = getSettings(user.id);
+  const seen = settings.lastSeenAt?.getTime() ?? 0;
+  const vat = p.vatPercent ?? settings.vatPercent;
   const flip = !!p.lastChangedAt && p.lastChangedAt.getTime() > seen;
   const candidates: Candidate[] = p.candidatesJson ? JSON.parse(p.candidatesJson) : [];
 
@@ -87,6 +90,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
                     {formatMoney(p.previousPriceCents, p.currency)}
                   </span>
                 )}
+                {settings.showNetPrices && <NetPrice cents={p.currentPriceCents} currency={p.currency} vat={vat} showRate className="text-[15px]" />}
               </div>
               <div className="pb-2 text-[22px]">
                 {p.lastChangedAt && <Change percent={p.lastChangePercent} />}
@@ -192,6 +196,9 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
                 title={p.title ?? ""}
                 target={p.targetPriceCents != null ? formatAmount(p.targetPriceCents) : ""}
                 selector={p.selector ?? ""}
+                vat={p.vatPercent != null ? String(p.vatPercent).replace(".", ",") : ""}
+                defaultVat={settings.vatPercent}
+                showVat={settings.showNetPrices}
               />
             </section>
             <section className="border-t border-rule pt-5">

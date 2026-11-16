@@ -21,6 +21,7 @@ import {
   testEmailAction,
   testTelegramAction,
   updateNotificationsAction,
+  updatePricesAction,
   updateProfileAction,
   updateScheduleAction,
 } from "../actions";
@@ -110,6 +111,19 @@ export default async function SettingsPage() {
               ))}
             </p>
           </div>
+        </ActionForm>
+      </Section>
+
+      <Section title="Prices" note="Shops show prices including VAT. Optionally show the amount without VAT under every price.">
+        <ActionForm action={updatePricesAction} submit="Save prices">
+          <Toggle name="showNetPrices" label="Show prices without VAT" defaultChecked={s.showNetPrices} />
+          <label className="block">
+            <span className="block text-[14px] font-medium">VAT rate (%)</span>
+            <input name="vatPercent" inputMode="decimal" defaultValue={String(s.vatPercent).replace(".", ",")} className={`${fieldCls} max-w-32`} />
+            <span className="mt-1 block text-[13px] text-muted">
+              EU shops charge the rate of the country they deliver to (Slovenia 22 %). You can set a different rate on a single product.
+            </span>
+          </label>
         </ActionForm>
       </Section>
 

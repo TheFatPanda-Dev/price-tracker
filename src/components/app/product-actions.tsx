@@ -38,11 +38,17 @@ export function EditForm({
   title,
   target,
   selector,
+  vat,
+  defaultVat,
+  showVat,
 }: {
   action: Bound;
   title: string;
   target: string;
   selector: string;
+  vat: string;
+  defaultVat: number;
+  showVat: boolean;
 }) {
   const [state, run] = useActionState(action, null);
   const field = fieldCls;
@@ -51,8 +57,19 @@ export function EditForm({
       <label className="block">
         <span className="block text-[14px] font-medium">Target price</span>
         <input name="target" defaultValue={target} inputMode="decimal" placeholder="e.g. 89,95" className={field} />
-        <span className="mt-1 block text-[13px] text-muted">You get a highlighted alert when the price reaches it. Leave empty for none.</span>
+        <span className="mt-1 block text-[13px] text-muted">
+          You get a highlighted alert when the price reaches it{showVat ? " (price including VAT)" : ""}. Leave empty for none.
+        </span>
       </label>
+      {showVat ? (
+        <label className="block">
+          <span className="block text-[14px] font-medium">VAT rate for this product (%)</span>
+          <input name="vat" defaultValue={vat} inputMode="decimal" placeholder={`${String(defaultVat).replace(".", ",")} (your default)`} className={`${field} max-w-48`} />
+          <span className="mt-1 block text-[13px] text-muted">Only for shops that charge a different VAT, e.g. outside the EU (use 0).</span>
+        </label>
+      ) : (
+        <input type="hidden" name="vat" value={vat} />
+      )}
       <label className="block">
         <span className="block text-[14px] font-medium">Name</span>
         <input name="title" defaultValue={title} className={field} />

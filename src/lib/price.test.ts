@@ -3,6 +3,7 @@ import {
   currencyFromHost,
   formatMoney,
   formatPercent,
+  netCents,
   parsePrice,
   parseStructuredPrice,
   percentChange,
@@ -57,6 +58,12 @@ describe("helpers", () => {
   it("percentChange", () => {
     expect(percentChange(39900, 34900)).toBe(-12.5);
     expect(percentChange(15990, 16990)).toBe(6.3);
+  });
+  it("netCents", () => {
+    expect(netCents(12200, 22)).toBe(10000);
+    expect(netCents(2050, 22)).toBe(1680);
+    expect(netCents(11900, 19)).toBe(10000);
+    expect(netCents(999, 0)).toBe(999);
   });
   it("currencyFromHost", () => {
     expect(currencyFromHost("www.bigbang.si")).toBe("EUR");

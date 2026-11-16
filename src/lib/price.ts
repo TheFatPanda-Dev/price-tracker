@@ -117,6 +117,11 @@ export function parseStructuredPrice(value: unknown): number | null {
   return parsePrice(v)?.cents ?? null;
 }
 
+/** Price without VAT, from a VAT-inclusive price. */
+export function netCents(grossCents: number, vatPercent: number): number {
+  return Math.round(grossCents / (1 + vatPercent / 100));
+}
+
 export function percentChange(from: number, to: number): number {
   if (!from) return 0;
   return Math.round(((to - from) / from) * 1000) / 10;

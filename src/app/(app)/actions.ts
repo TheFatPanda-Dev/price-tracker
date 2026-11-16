@@ -84,7 +84,14 @@ const editSchema = z.object({
   title: z.string().trim().max(200),
   target: z.string().trim().max(40),
   selector: z.string().trim().max(300),
+  vat: z.string().trim().max(10),
 });
+
+function parseVat(v: string): number | null | "invalid" {
+  if (!v) return null;
+  const n = Number(v.replace(",", ".").replace("%", "").trim());
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : "invalid";
+}
 
 export async function updateProductAction(id: number, _: ActionState, form: FormData): Promise<ActionState> {
   const { p } = await ownProduct(id);
@@ -92,9 +99,12 @@ export async function updateProductAction(id: number, _: ActionState, form: Form
     title: form.get("title") ?? p.title ?? "",
     target: form.get("target") ?? "",
     selector: form.get("selector") ?? p.selector ?? "",
+    vat: form.get("vat") ?? "",
   });
   if (!parsed.success) return { error: "Check the fields." };
   const { title, target, selector } = parsed.data;
+  const vatPercent = parseVat(parsed.data.vat);
+  if (vatPercent === "invalid") return { error: "Enter the VAT rate as a number between 0 and 100." };
   let targetPriceCents: number | null = null;
   if (target) {
     const tp = parsePrice(target);
@@ -112,6 +122,7 @@ export async function updateProductAction(id: number, _: ActionState, form: Form
       targetPriceCents,
       targetHitAt,
       selector: selector || null,
+      vatPercent,
       ...(selectorChanged ? { method: selector ? "selector" : null } : {}),
     })
     .where(eq(schema.products.id, id))
@@ -221,6 +232,19 @@ export async function updateNotificationsAction(_: ActionState, form: FormData):
     .run();
   refresh();
   return { ok: "Alert settings saved." };
+}
+
+export async function updatePricesAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const vat = parseVat(String(form.get("vatPercent") ?? ""));
+  if (vat === "invalid" || vat === null) return { error: "Enter the VAT rate as a number between 0 and 100." };
+  getSettings(user.id);
+  db.update(schema.userSettings)
+    .set({ showNetPrices: form.get("showNetPrices") === "on", vatPercent: vat })
+    .where(eq(schema.userSettings.userId, user.id))
+    .run();
+  refresh();
+  return { ok: "Price display saved." };
 }
 
 export async function testEmailAction(): Promise<ActionState> {
