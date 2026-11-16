@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# allow the env template
+!.env.example
+
+# local SQLite data (docker volume / dev)
+/data/
+
+# playwright
+/test-results/
+/playwright-report/

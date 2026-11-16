@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Departures Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--board:#15181e;--board-2:#1f232b;--flap:#f2f1ec;--paper:#f6f5f0;--rule:#dcdad2;--ink:#15181e;--muted:#5d6068;--yellow:#ffd23f;--drop:#1f7a45;--rise:#c2372b;--target:#3b5bdb}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{font-family:Barlow,sans-serif;background:var(--paper);color:var(--ink);font-variant-numeric:tabular-nums}
+header{background:var(--board);color:var(--flap);padding:22px 48px 26px}
+.top{display:flex;align-items:center;gap:32px}
+.brand{font:700 22px/1 "Barlow Semi Condensed";letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+.brand i{width:26px;height:26px;background:var(--yellow);border-radius:4px;display:inline-block}
+nav{display:flex;gap:24px;font-size:15px;color:#b9bcc4}
+nav b{color:var(--flap);font-weight:600}
+.me{margin-left:auto;font-size:14px;color:#b9bcc4}
+.gate{margin-top:26px;display:flex;gap:12px;align-items:stretch}
+.gate input{flex:1;height:56px;border-radius:6px;border:1px solid #3a3f4a;background:var(--board-2);color:var(--flap);font:500 18px Barlow;padding:0 20px}
+.gate button{height:56px;padding:0 28px;border:0;border-radius:6px;background:var(--yellow);color:var(--board);font:700 17px "Barlow Semi Condensed";letter-spacing:.03em}
+.status{margin-top:16px;display:flex;gap:28px;font-size:14px;color:#b9bcc4}
+.status strong{color:var(--flap);font-weight:600}
+.status .next{color:var(--yellow)}
+main{padding:20px 48px}
+.tools{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.tools h1{font:700 26px "Barlow Semi Condensed";margin-right:auto}
+.chip{font-size:14px;padding:7px 12px;border:1px solid var(--rule);border-radius:999px;background:#fff}
+.chip.on{background:var(--ink);color:var(--flap);border-color:var(--ink)}
+table{width:100%;border-collapse:collapse}
+th{font:600 12px Barlow;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:2px solid var(--ink)}
+th.r,td.r{text-align:right}
+.group td{background:var(--yellow);font:700 13px "Barlow Semi Condensed";letter-spacing:.1em;text-transform:uppercase;padding:5px 10px}
+td{padding:11px 10px;border-bottom:1px solid var(--rule);vertical-align:middle;font-size:15px}
+.time{font:600 15px "Barlow Semi Condensed";color:var(--muted);width:70px}
+.prod{display:flex;align-items:center;gap:12px}
+.thumb{width:40px;height:40px;border-radius:4px;background:#e4e2da;flex:none}
+.name{font-weight:600;font-size:16px}
+.shop{font-size:13px;color:var(--muted)}
+.flaps{display:inline-flex;gap:2px}
+.flaps span{background:var(--board);color:var(--flap);font:600 22px/1 "Barlow Semi Condensed";width:19px;height:30px;display:grid;place-items:center;border-radius:3px;position:relative}
+.flaps span::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#000}
+.flaps .sep{background:none;color:var(--ink);width:8px}
+.flaps .sep::after{display:none}
+.plain{font:600 22px "Barlow Semi Condensed"}
+.was{display:block;font-size:13px;color:var(--muted);text-decoration:line-through}
+.chg{font:700 16px "Barlow Semi Condensed";white-space:nowrap}
+.down{color:var(--drop)}.up{color:var(--rise)}.same{color:var(--muted);font-weight:500}
+.range{width:150px}
+.bar{position:relative;height:6px;background:#e4e2da;border-radius:3px}
+.bar i{position:absolute;top:-4px;width:3px;height:14px;background:var(--ink);border-radius:1px}
+.bar em{position:absolute;top:-4px;width:2px;height:14px;background:var(--target)}
+.lo{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:5px}
+.target{font:600 12px Barlow;color:#fff;background:var(--target);padding:3px 7px;border-radius:3px;margin-left:8px}
+.fail{font:700 12px "Barlow Semi Condensed";letter-spacing:.06em;color:var(--rise);border:1.5px solid var(--rise);padding:2px 6px;border-radius:3px;transform:rotate(-3deg);display:inline-block}
+.next{font:600 15px "Barlow Semi Condensed"}
+</style></head><body>
+<header>
+  <div class="top">
+    <div class="brand"><i></i>Price Tracker</div>
+    <nav><b>Watchlist</b><span>Activity</span><span>Settings</span></nav>
+    <div class="me">Signed in · Admin</div>
+  </div>
+  <div class="gate">
+    <input value="https://www.amazon.de/dp/B0CX23V2ZK" aria-label="Product link">
+    <button>Track price</button>
+  </div>
+  <div class="status">
+    <span><strong>42</strong> products</span>
+    <span><strong>3</strong> changed today</span>
+    <span><strong>1</strong> hit its target</span>
+    <span class="next">Next check departs 18:00</span>
+  </div>
+</header>
+<main>
+  <div class="tools">
+    <h1>Watchlist</h1>
+    <span class="chip on">All</span><span class="chip">Dropped</span><span class="chip">Rose</span><span class="chip">Target hit</span><span class="chip">Failed</span>
+    <span class="chip">Sort: last change ▾</span>
+  </div>
+  <table>
+    <thead><tr><th>Changed</th><th>Product</th><th class="r">Price</th><th class="r">Change</th><th>Lowest – highest</th><th class="r">Checked</th><th class="r">Next</th></tr></thead>
+    <tbody>
+      <tr class="group"><td colspan="7">Today</td></tr>
+      <tr><td class="time">12:00</td><td><div class="prod"><span class="thumb"></span><div><div class="name">Nike Pegasus 41, men's 44 <span class="target">Target €90 hit</span></div><div class="shop">zalando.si</div></div></div></td>
+        <td class="r"><span class="flaps"><span>8</span><span>9</span><span class="sep">,</span><span>9</span><span>5</span></span><span class="was">€119,95</span></td><td class="r chg down">▼ 25,0 %</td>
+        <td class="range"><div class="bar"><i style="left:4%"></i><em style="left:12%"></em></div><div class="lo"><span>€89,95</span><span>€129,95</span></div></td><td class="r shop">12:00</td><td class="r next">18:00</td></tr>
+      <tr><td class="time">06:00</td><td><div class="prod"><span class="thumb"></span><div><div class="name">Sony WH-1000XM6 headphones</div><div class="shop">amazon.de</div></div></div></td>
+        <td class="r"><span class="flaps"><span>3</span><span>4</span><span>9</span><span class="sep">,</span><span>0</span><span>0</span></span><span class="was">€399,00</span></td><td class="r chg down">▼ 12,5 %</td>
+        <td class="range"><div class="bar"><i style="left:20%"></i></div><div class="lo"><span>€329,00</span><span>€419,00</span></div></td><td class="r shop">12:00</td><td class="r next">18:00</td></tr>
+      <tr><td class="time">06:00</td><td><div class="prod"><span class="thumb"></span><div><div class="name">Samsung 990 PRO 2 TB SSD</div><div class="shop">bigbang.si</div></div></div></td>
+        <td class="r"><span class="flaps"><span>1</span><span>6</span><span>9</span><span class="sep">,</span><span>9</span><span>0</span></span><span class="was">€159,90</span></td><td class="r chg up">▲ 6,3 %</td>
+        <td class="range"><div class="bar"><i style="left:58%"></i></div><div class="lo"><span>€139,90</span><span>€189,90</span></div></td><td class="r shop">12:00</td><td class="r next">18:00</td></tr>
+      <tr class="group"><td colspan="7">This week</td></tr>
+      <tr><td class="time">Tue</td><td><div class="prod"><span class="thumb"></span><div><div class="name">Dyson V15 Detect Absolute</div><div class="shop">mimovrste.com</div></div></div></td>
+        <td class="r"><span class="plain">€549,99</span><span class="was">€524,99</span></td><td class="r chg up">▲ 4,8 %</td>
+        <td class="range"><div class="bar"><i style="left:66%"></i></div><div class="lo"><span>€499,00</span><span>€599,00</span></div></td><td class="r shop">12:00</td><td class="r next">18:00</td></tr>
+      <tr><td class="time">Mon</td><td><div class="prod"><span class="thumb"></span><div><div class="name">Garmin Forerunner 265</div><div class="shop">ebay.de</div></div></div></td>
+        <td class="r"><span class="plain">€279,00</span></td><td class="r"><span class="fail">CHECK FAILED</span></td>
+        <td class="range"><div class="bar"><i style="left:35%"></i></div><div class="lo"><span>€259,00</span><span>€329,00</span></div></td><td class="r shop">Mon 18:00</td><td class="r next">18:00</td></tr>
+      <tr class="group"><td colspan="7">Earlier</td></tr>
+      <tr><td class="time">2 Nov</td><td><div class="prod"><span class="thumb"></span><div><div class="name">LEGO Technic 42171 Mercedes F1</div><div class="shop">amazon.de</div></div></div></td>
+        <td class="r"><span class="plain">€179,99</span></td><td class="r chg same">no change</td>
+        <td class="range"><div class="bar"><i style="left:50%"></i></div><div class="lo"><span>€169,99</span><span>€189,99</span></div></td><td class="r shop">12:00</td><td class="r next">18:00</td></tr>
+    </tbody>
+  </table>
+</main>
+</body></html>
